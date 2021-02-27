@@ -1,0 +1,75 @@
+image: debian:stable
+
+stages:
+  - build_image
+
+## Add variables, such as SERVER_IP,GATEWAY_IP etc, to Gitlab CI variables ##
+
+create_test_ubuntu2004:
+  stage: build_image
+  tags:
+     - packer
+  before_script:
+    - apt update -y && apt install -y curl sed wget unzip
+    - echo "Fetching packer 1.5.5"
+    - wget https://releases.hashicorp.com/packer/1.5.5/packer_1.5.5_linux_amd64.zip
+    - unzip packer_1.5.5_linux_amd64.zip
+    - chmod +x packer
+  script:
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," preseed.cfg
+    - sed -i "s,__GATEWAY_IP__,$GATEWAY_IP," preseed.cfg
+    - sed -i "s,__DNS_SERVER_IP__,$DNS_SERVER_IP," preseed.cfg
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," preseed.cfg
+    - sed -i "s,__PROVISIONING_PASSWORD_PLAIN__,$PROVISIONING_PASSWORD_PLAIN," preseed.cfg
+
+    - sed -i "s,__VCENTER_SERVER__,$TEST_VCENTER_SERVER," variables.json
+    - sed -i "s,__VCENTER_USERNAME__,$VCENTER_USERNAME," variables.json
+    - sed -i "s,__VCENTER_PASSWORD__,$VCENTER_PASSWORD," variables.json
+    - sed -i "s,__DATACENTER__,$TEST_DATACENTER," variables.json
+    - sed -i "s,__DATASTORE__,$TEST_DATASTORE," variables.json
+    - sed -i "s,__FOLDER__,$FOLDER," variables.json
+    - sed -i "s,__CLUSTER__,$TEST_CLUSTER," variables.json
+    - sed -i "s,__NETWORK__,$TEST_NETWORK," variables.json
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," variables.json
+    - sed -i "s,__PROVISIONING_PASSWORD_PLAIN__,$PROVISIONING_PASSWORD_PLAIN," variables.json
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," variables.json
+    - sed -i "s,__ISO_PATH__,$TEST_ISO_PATH," variables.json
+
+    - ./packer build -force -var-file=variables.json ubuntu2004.json
+  only:
+    - develop
+
+create_prd_ubuntu2004:
+  stage: build_image
+  tags:
+      - packer
+  before_script:
+    - apt update -y && apt install -y curl sed wget unzip
+    - echo "Fetching packer 1.5.5"
+    - wget https://releases.hashicorp.com/packer/1.5.5/packer_1.5.5_linux_amd64.zip
+    - unzip packer_1.5.5_linux_amd64.zip
+    - chmod +x packer
+  script:
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," preseed.cfg
+    - sed -i "s,__GATEWAY_IP__,$GATEWAY_IP," preseed.cfg
+    - sed -i "s,__DNS_SERVER_IP__,$DNS_SERVER_IP," preseed.cfg
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," preseed.cfg
+    - sed -i "s,__PROVISIONING_PASSWORD_PLAIN__,$PROVISIONING_PASSWORD_PLAIN," preseed.cfg
+
+    - sed -i "s,__VCENTER_SERVER__,$PROD_VCENTER_SERVER," variables.json
+    - sed -i "s,__VCENTER_USERNAME__,$VCENTER_USERNAME," variables.json
+    - sed -i "s,__VCENTER_PASSWORD__,$VCENTER_PASSWORD," variables.json
+    - sed -i "s,__DATACENTER__,$PROD_DATACENTER," variables.json
+    - sed -i "s,__DATASTORE__,$PROD_DATASTORE," variables.json
+    - sed -i "s,__FOLDER__,$FOLDER," variables.json
+    - sed -i "s,__CLUSTER__,$PROD_CLUSTER," variables.json
+    - sed -i "s,__NETWORK__,$PROD_NETWORK," variables.json
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," variables.json
+    - sed -i "s,__PROVISIONING_PASSWORD_PLAIN__,$PROVISIONING_PASSWORD_PLAIN," variables.json
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," variables.json
+    - sed -i "s,__ISO_PATH__,$PROD_ISO_PATH," variables.json
+    - sed -i "s,__ISO_CHECKSUM__,$ISO_CHECKSUM," variables.json
+
+    - ./packer build -force -var-file=variables.json ubuntu2004.json
+  only:
+    - master

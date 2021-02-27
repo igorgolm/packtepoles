@@ -1,0 +1,24 @@
+
+{
+"vm_name": "ubuntu2004-packer-vm",
+
+"vcenter_server":"__VCENTER_SERVER__",
+"vcenter_username":"__VCENTER_USERNAME__",
+"vcenter_password":"__VCENTER_PASSWORD__",
+
+"datacenter": "__DATACENTER__",
+"datastore": "__DATASTORE__",
+"folder": "__FOLDER__",
+"cluster": "__CLUSTER__",
+"network": "__NETWORK__",
+
+"vm_cpu_num": "2",
+"vm_mem_size": "2048",
+"vm_disk_size": "32000",
+
+"ssh_username": "__PROVISIONING_USERNAME__",
+"ssh_password": "__PROVISIONING_PASSWORD_PLAIN__",
+"ssh_host": "__SERVER_IP__",
+
+"iso_path": "__ISO_PATH__"
+}
