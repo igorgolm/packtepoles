@@ -1,0 +1,100 @@
+image: debian:stable
+
+stages:
+  - build_ks_iso
+  - build_image
+
+## Add variables, such as SERVER_IP,GATEWAY_IP etc, to Gitlab CI variables ##
+
+create_ksconf_test_centos8:
+  stage: build_ks_iso
+  tags:
+    - packer
+  script:
+    - apt update -y && apt install -y genisoimage curl sed wget
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," ks.cfg
+    - sed -i "s,__GATEWAY_IP__,$GATEWAY_IP," ks.cfg
+    - sed -i "s,__DNS_SERVER_IP__,$DNS_SERVER_IP," ks.cfg
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," ks.cfg
+    - sed -i "s,__IMAGE_BUILDER__,$GITLAB_USER_LOGIN," ks.cfg
+    - sed -i "s,__TEMPLATE_VERSION__,$CI_PIPELINE_ID," ks.cfg
+    - genisoimage -o centos8_ks.iso -V "OEMDRV" ks.cfg
+    - curl -k --user "$VCENTER_USERNAME:$VCENTER_PASSWORD" -X PUT --data-binary @./centos8_ks.iso -v --insecure "https://$TEST_VCENTER_SERVER/folder/centos8_ks.iso?dcPath=$TEST_DATACENTER&dsName=iso_templates" 
+  only:
+    - develop
+
+create_test_centos8:
+  stage: build_image
+  tags:
+     - packer
+  before_script:
+    - apt update -y && apt install -y curl sed wget unzip
+    - echo "Fetching packer 1.5.5"
+    - wget https://releases.hashicorp.com/packer/1.5.5/packer_1.5.5_linux_amd64.zip
+    - unzip packer_1.5.5_linux_amd64.zip
+    - chmod +x packer
+  script:
+    - sed -i "s,__VCENTER_SERVER__,$TEST_VCENTER_SERVER," variables.json
+    - sed -i "s,__VCENTER_USERNAME__,$VCENTER_USERNAME," variables.json
+    - sed -i "s,__VCENTER_PASSWORD__,$VCENTER_PASSWORD," variables.json
+    - sed -i "s,__DATACENTER__,$TEST_DATACENTER," variables.json
+    - sed -i "s,__DATASTORE__,$TEST_DATASTORE," variables.json
+    - sed -i "s,__FOLDER__,$FOLDER," variables.json
+    - sed -i "s,__CLUSTER__,$TEST_CLUSTER," variables.json
+    - sed -i "s,__NETWORK__,$TEST_NETWORK," variables.json
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," variables.json
+    - sed -i "s,__PROVISIONING_PASSWORD_PLAIN__,$PROVISIONING_PASSWORD_PLAIN," variables.json
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," variables.json
+    - sed -i "s,__ISO_PATH__,$TEST_ISO_PATH," variables.json
+    - sed -i "s,__ISO_KS_PATH__,$TEST_ISO_KS_PATH," variables.json
+
+    - ./packer build -force -var-file=variables.json centos8.json
+  only:
+    - develop
+
+create_ksconf_prod_centos8:
+  stage: build_ks_iso
+  tags:
+    - packer
+  script:
+    - apt update -y && apt install -y genisoimage curl sed wget
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," ks.cfg
+    - sed -i "s,__GATEWAY_IP__,$GATEWAY_IP," ks.cfg
+    - sed -i "s,__DNS_SERVER_IP__,$DNS_SERVER_IP," ks.cfg
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," ks.cfg
+    - sed -i "s,__IMAGE_BUILDER__,$GITLAB_USER_LOGIN," ks.cfg
+    - sed -i "s,__TEMPLATE_VERSION__,$CI_PIPELINE_ID," ks.cfg
+    - genisoimage -o centos8_ks.iso -V "OEMDRV" ks.cfg
+    - curl -k --user "$VCENTER_USERNAME:$VCENTER_PASSWORD" -X PUT --data-binary @./centos8_ks.iso -v --insecure "https://$PROD_VCENTER_SERVER/folder/centos8_ks.iso?dcPath=$PROD_DATACENTER&dsName=iso_templates"
+  only:
+    - master
+
+create_prd_centos8:
+  stage: build_image
+  tags:
+      - packer
+  before_script:
+    - apt update -y && apt install -y curl sed wget unzip
+    - echo "Fetching packer 1.5.5"
+    - wget https://releases.hashicorp.com/packer/1.5.5/packer_1.5.5_linux_amd64.zip
+    - unzip packer_1.5.5_linux_amd64.zip
+    - chmod +x packer
+  script:
+    - sed -i "s,__VCENTER_SERVER__,$PROD_VCENTER_SERVER," variables.json
+    - sed -i "s,__VCENTER_USERNAME__,$VCENTER_USERNAME," variables.json
+    - sed -i "s,__VCENTER_PASSWORD__,$VCENTER_PASSWORD," variables.json
+    - sed -i "s,__DATACENTER__,$PROD_DATACENTER," variables.json
+    - sed -i "s,__DATASTORE__,$PROD_DATASTORE," variables.json
+    - sed -i "s,__FOLDER__,$FOLDER," variables.json
+    - sed -i "s,__CLUSTER__,$PROD_CLUSTER," variables.json
+    - sed -i "s,__NETWORK__,$PROD_NETWORK," variables.json
+    - sed -i "s,__PROVISIONING_USERNAME__,$PROVISIONING_USERNAME," variables.json
+    - sed -i "s,__PROVISIONING_PASSWORD_PLAIN__,$PROVISIONING_PASSWORD_PLAIN," variables.json
+    - sed -i "s,__SERVER_IP__,$SERVER_IP," variables.json
+    - sed -i "s,__ISO_PATH__,$PROD_ISO_PATH," variables.json
+    - sed -i "s,__ISO_CHECKSUM__,$ISO_CHECKSUM," variables.json
+    - sed -i "s,__ISO_KS_PATH__,$PROD_ISO_KS_PATH," variables.json
+
+    - ./packer build -force -var-file=variables.json centos8.json
+  only:
+    - master
