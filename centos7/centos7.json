@@ -1,0 +1,58 @@
+{
+  "builders": [{
+    "notes": "Build via Packer",
+    "type": "vsphere-iso",
+    "vm_name": "{{user `vm_name`}}",
+
+    "username": "{{user `vcenter_username`}}",
+    "password": "{{user `vcenter_password`}}",
+    "vcenter_server": "{{user `vcenter_server`}}",
+    "cluster": "{{user `cluster`}}",
+    "datacenter": "{{user `datacenter`}}",
+    "datastore": "{{user `datastore`}}",
+    "guest_os_type": "centos7_64Guest",
+    "insecure_connection": "true",
+    "folder": "{{user `folder`}}",
+    "convert_to_template": "true",
+    
+    "ssh_host": "{{user `ssh_host`}}", 
+    "ssh_password": "{{user `ssh_password`}}",
+    "ssh_username": "{{user `ssh_username`}}",
+    "ssh_timeout": "25m",
+    "ip_wait_timeout": "20m",
+
+    "iso_paths": [
+      "{{user `iso_path`}}"
+    ],
+    "iso_checksum": "{{user `iso_checksum`}}",
+    "iso_checksum_type": "{{user `iso_checksum_type`}}",
+
+    "CPUs": "{{user `vm_cpu_num`}}",
+    "CPU_hot_plug": "true",
+    "RAM": "{{user `vm_mem_size`}}",
+    "RAM_hot_plug": "true", 
+    "RAM_reserve_all": false,
+
+    "boot_wait": "10s",
+    "boot_order": "disk,cdrom,floppy",
+    "boot_command": [
+      "<esc><wait>",
+      "linux ks=hd:fd0:/ks.cfg<enter>"
+    ],
+    "network_adapters": [
+      {
+      "network": "{{user `network`}}",
+      "network_card": "vmxnet3"
+      }
+    ],
+
+    "disk_controller_type": "pvscsi",
+    "disk_size": "{{user `vm_disk_size`}}",
+    "disk_thin_provisioned": true,
+    "floppy_files": [
+      "ks.cfg"
+    ],
+
+    "shutdown_command": "echo '{{user `ssh_username`}}' | sudo -S /sbin/halt -h -p"
+  }]
+}
