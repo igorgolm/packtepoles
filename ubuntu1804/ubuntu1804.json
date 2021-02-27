@@ -1,0 +1,62 @@
+{
+  "builders": [{
+    "notes": "Build via Packer",
+    "type": "vsphere-iso",
+    "vm_name": "{{user `vm_name`}}",
+
+    "username": "{{user `vcenter_username`}}",
+    "password": "{{user `vcenter_password`}}",
+    "vcenter_server": "{{user `vcenter_server`}}",
+    "cluster": "{{user `cluster`}}",
+    "datacenter": "{{user `datacenter`}}",
+    "datastore": "{{user `datastore`}}",
+    "guest_os_type": "ubuntu64Guest",
+    "insecure_connection": "true",
+    "folder": "{{user `folder`}}",
+    "convert_to_template": "true",
+    
+    "ssh_host": "{{user `ssh_host`}}", 
+    "ssh_password": "{{user `ssh_password`}}",
+    "ssh_username": "{{user `ssh_username`}}",
+    "ssh_timeout": "20m",
+    "ip_wait_timeout": "25m",
+
+    "iso_paths": [
+      "{{user `iso_path`}}"
+    ],
+    "CPUs": "{{user `vm_cpu_num`}}",
+    "CPU_hot_plug": "true",
+    "RAM": "{{user `vm_mem_size`}}",
+    "RAM_hot_plug": "true", 
+    "RAM_reserve_all": false,
+    "floppy_files": [
+      "./preseed.cfg"
+    ],
+    "boot_wait": "10s",
+    "boot_command": [
+      "<esc><esc><wait><enter><wait>",
+      "/install/vmlinuz ",
+      "initrd=/install/initrd.gz ",
+      "auto=true ",
+      "fb=false debconf/frontend=noninteractive ",
+      "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+      "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+      "locale=en_US ",
+      "console-setup/ask_detect=false ",
+      "preseed/file=/media/preseed.cfg ",
+      "-- <enter>"
+    ],
+    "boot_order": "disk,cdrom",
+    "network_adapters": [
+      {
+      "network": "{{user `network`}}",
+      "network_card": "vmxnet3"
+      }
+    ],
+
+    "disk_controller_type": "pvscsi",
+    "disk_size": "{{user `vm_disk_size`}}",
+    "disk_thin_provisioned": true,
+    "shutdown_command": "echo '{{user `ssh_username`}}' | sudo -S /sbin/halt -h -p"
+  }]
+}
